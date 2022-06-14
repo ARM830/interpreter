@@ -30,7 +30,12 @@ namespace 解释器
 
         public string OutLine()
         {
-            throw new NotImplementedException();
+            string str=string.Empty;
+            foreach (var item in Statement)
+            {
+                str+=item.OutLine();
+            }
+            return str;
         }
 
         public string TokenLiteral()
@@ -71,7 +76,7 @@ namespace 解释器
 
         public string OutLine()
         {
-            string str = $"{TokenLiteral()}  {Name.OutLine()} ={Value.OutLine()};";
+            string str = $"{TokenLiteral()}  {Name.OutLine()} ={Value?.OutLine()};";
             return str;
         }
 
@@ -94,7 +99,7 @@ namespace 解释器
 
         public string OutLine()
         {
-            string str = $"{TokenLiteral()}  ={Value.OutLine()};";
+            string str = $"{TokenLiteral()}  ={Value?.OutLine()};";
             return str;
         }
 
@@ -115,7 +120,7 @@ namespace 解释器
 
         public string OutLine()
         {
-            string str = $"{Expression.OutLine()};";
+            string str = $"{Expression?.OutLine()}";
             return str;
         }
 
@@ -160,7 +165,7 @@ namespace 解释器
 
         public string OutLine()
         {
-            var str = $"{Operator} \r\n{Right.OutLine()}";
+            var str = $"({Operator} {Right?.OutLine()})";
             return str;
         }
 
@@ -183,7 +188,7 @@ namespace 解释器
 
         public string OutLine()
         {
-            var str = $"{Left.OutLine()} \r\n{Operator} \r\n{Right.OutLine()}";
+            var str = $"({Left.OutLine()} {Operator}  {Right.OutLine()})";
             return str;
         }
 

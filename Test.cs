@@ -78,9 +78,21 @@ namespace 解释器
             var p = Parser.Create(lexer);
             var list = p.ParserProgram();
         }
+        public static void Infix()
+        {
+            //var input = "5 + 5; 5 - 5;5 * 5;5 / 5;5 > 5;5 == 5;";
+            var input = new string[] { "-a * b ", "!-a" ,"a + b + c" ,"3 + 4; -5 * 5"};
+            foreach (var item in input)
+            {
+                var lexer = Lexer.Create(item);
+                var p = Parser.Create(lexer);
+                var list = p.ParserProgram();
+                Console.WriteLine(list.OutLine());
+            }
+        }
         public static void Start()
         {
-            Prefix();
+            Infix();
         }
     }
 }

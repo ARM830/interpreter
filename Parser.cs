@@ -22,6 +22,25 @@ namespace 解释器
             RegisterPrefix(TokenEnum.Double, ParseDoubleLiteral);
             RegisterPrefix(TokenEnum.BANG, ParsePrefixExpression);
             RegisterPrefix(TokenEnum.MINUS, ParsePrefixExpression);
+          //  RegisterPrefix(TokenEnum.LPAREN, ParseGroupedExpression);
+            Registerinfix(TokenEnum.PLUS, ParseInfixExpression);
+            Registerinfix(TokenEnum.MINUS, ParseInfixExpression);
+            Registerinfix(TokenEnum.SLASH, ParseInfixExpression);
+            Registerinfix(TokenEnum.ASTERISK, ParseInfixExpression);
+            Registerinfix(TokenEnum.EQ, ParseInfixExpression);
+            Registerinfix(TokenEnum.Not_EQ, ParseInfixExpression);
+            Registerinfix(TokenEnum.LT, ParseInfixExpression);
+            Registerinfix(TokenEnum.GT, ParseInfixExpression);
+        }
+        public IExpression ParseGroupedExpression()
+        {
+            NextToken();
+            var exp = ParseExpression();
+            if (!ExpectPeek(TokenEnum.RPAREN))
+            {
+                return null;
+            }
+            return exp;
         }
         public static Parser Create(Lexer lexer)
         {
@@ -129,15 +148,25 @@ namespace 解释器
             }
             return stmt;
         }
-        IExpression ParseExpression(int lowset = 7)
+        IExpression ParseExpression(int lowset = 1)
         {
-            var prefix = PrefixExpressionPairs[CurToken.TokenEnum];
+            PrefixExpressionPairs.TryGetValue(CurToken.TokenEnum, out Func<IExpression> prefix);
             if (prefix == null)
             {
                 NoPreExpressionError(CurToken.TokenEnum);
                 return null;
             }
             var leftexp = prefix();
+            while (!PeekTokenIs(TokenEnum.SEMICOLON) && lowset < PeekPrecedence())
+            {
+                var index = InfixExpressionPairs[PeekToken.TokenEnum];
+                if (index == null)
+                {
+                    return leftexp;
+                }
+                NextToken();
+                leftexp = index(leftexp);
+            }
             return leftexp;
         }
 
@@ -186,16 +215,16 @@ namespace 解释器
         {
             var exp = new PrefixExpression() { Token = CurToken, Operator = CurToken.Literal };
             NextToken();
-            exp.Right = ParseExpression();
+            exp.Right = ParseExpression((int)Lowset.PREFIX);
             return exp;
 
         }
 
         public IExpression ParseInfixExpression(IExpression expression)
         {
-            var exp = new InfixExpression() { Token = CurToken, Operator = CurToken.Literal ,Left=expression};
-          
-          
+            var exp = new InfixExpression() { Token = CurToken, Operator = CurToken.Literal, Left = expression };
+
+
             var precedence = CurPrecedence();
             NextToken();
             exp.Right = ParseExpression(precedence);
@@ -208,7 +237,7 @@ namespace 解释器
             {
                 return (int)lowset;
             }
-            return 0;
+            return 1;
         }
         public int CurPrecedence()
         {
@@ -216,7 +245,7 @@ namespace 解释器
             {
                 return (int)lowset;
             }
-            return 0;
+            return 1;
         }
     }
 }
