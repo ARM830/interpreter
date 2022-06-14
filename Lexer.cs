@@ -128,6 +128,9 @@ namespace 解释器
                 case (char)0:
                     token = new Token(TokenEnum.EOF, string.Empty);
                     break;
+                case '.':
+                    token = new Token(TokenEnum.OP, CharValue);
+                    break;
                 default:
                     token = new Token();
 
@@ -141,7 +144,7 @@ namespace 解释器
                     else if (IsDigit(CharValue))
                     {
                         token.Literal = ReadNumber();
-                        token.TokenEnum = TokenEnum.INT;
+                        token.TokenEnum = TokenEnum.Double;
                         token.TokenType = token.TokenEnum.ToString();
                         return token;
                     }
@@ -203,13 +206,23 @@ namespace 解释器
             return TokenEnum.IDENT;
         }
         /// <summary>
-        /// 读取整数
+        /// 读取浮点数
         /// </summary>
         /// <returns></returns>
         public string ReadNumber()
         {
             var position = Position;
             int count = 0;
+            while (IsDigit(CharValue))
+            {
+                ReadChar();
+                count++;
+            }
+            if (CharValue == '.')
+            {
+                ReadChar();
+                count++;
+            }
             while (IsDigit(CharValue))
             {
                 ReadChar();

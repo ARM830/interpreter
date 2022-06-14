@@ -6,6 +6,16 @@ using System.Threading.Tasks;
 
 namespace 解释器
 {
+    enum Lowset
+    {
+        LOWEST = 1,
+        EQUALS = 2, // == 
+        LESSGREATER = 3, // > or < 
+        SUM = 4, // + 
+        PRODUCT = 5,// * 
+        PREFIX = 6, // -X or !X 
+        CALL = 7,
+    }
     enum TokenEnum
     {
         /// <summary>
@@ -21,9 +31,9 @@ namespace 解释器
         /// </summary>
         IDENT,
         /// <summary>
-        /// 整数
+        /// 浮点数
         /// </summary>
-        INT,
+        Double,
         /// <summary>
         /// 等于 =
         /// </summary>
@@ -115,10 +125,27 @@ namespace 解释器
         /// <summary>
         /// not eq
         /// </summary>
-        Not_EQ
+        Not_EQ,
+        /// <summary>
+        /// dot 操作
+        /// </summary>
+        OP
+
     }
     static class Global
     {
+        public static readonly Dictionary<TokenEnum, Lowset> Precedences = new Dictionary<TokenEnum, Lowset>()
+        {
+            { TokenEnum.EQ, Lowset.EQUALS },
+            { TokenEnum.Not_EQ, Lowset.EQUALS },
+            { TokenEnum.LT, Lowset.LESSGREATER },
+            { TokenEnum.GT, Lowset.LESSGREATER },
+            { TokenEnum.PLUS, Lowset.SUM },
+            { TokenEnum.MINUS, Lowset.SUM },
+            { TokenEnum.SLASH, Lowset.PRODUCT },
+            { TokenEnum.ASTERISK, Lowset.PRODUCT },
+        };
+
         public static readonly Dictionary<char, Token> TokenPairs = new Dictionary<char, Token>()
         {
             {'=',new Token (TokenEnum.ASSIGN,"=") },
@@ -143,7 +170,7 @@ namespace 解释器
         {
             new Token (TokenEnum.ILLEGAL,"ILLEGAL"),
             new Token (TokenEnum.IDENT,"IDENT"),
-            new Token (TokenEnum.INT,"INT"),
+            new Token (TokenEnum.Double,"Double"),
             new Token (TokenEnum.ASSIGN,"="),
             new Token (TokenEnum.PLUS,"+"),
             new Token (TokenEnum.COMMA,","),
