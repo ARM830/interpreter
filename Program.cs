@@ -6,12 +6,14 @@ using System.Threading.Tasks;
 
 namespace 解释器
 {
-   
+    /// <summary>
+    /// 第二章
+    /// </summary>
     internal class Program
     {
         static void Main(string[] args)
         {
-           
+
             Test.Start();
             Console.ReadKey();
         }
