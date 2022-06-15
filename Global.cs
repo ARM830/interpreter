@@ -6,6 +6,12 @@ using System.Threading.Tasks;
 
 namespace 解释器
 {
+    enum MonkeyTypeEnum
+    {
+        Boolean_Obj,
+        Double_Obj,
+        Null_Obj
+    }
     enum Lowset
     {
         LOWEST = 1,
@@ -134,6 +140,12 @@ namespace 解释器
     }
     static class Global
     {
+        public static readonly Dictionary<MonkeyTypeEnum, string> MonkeyTypePairs = new Dictionary<MonkeyTypeEnum, string>()
+        {
+            {MonkeyTypeEnum.Double_Obj, "Double" },
+            {MonkeyTypeEnum.Boolean_Obj, "Boolean" },
+            {MonkeyTypeEnum.Null_Obj, "Null" },
+        };
         public static readonly Dictionary<TokenEnum, Lowset> Precedences = new Dictionary<TokenEnum, Lowset>()
         {
             { TokenEnum.EQ, Lowset.EQUALS },

@@ -46,6 +46,7 @@
     <Compile Include="AST.cs" />
     <Compile Include="Global.cs" />
     <Compile Include="Lexer.cs" />
+    <Compile Include="Eval.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
