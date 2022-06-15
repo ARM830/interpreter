@@ -117,20 +117,57 @@ namespace 解释器
         public static void FN2()
         {
             //let x = 1 * 2 * 3 * 4 * 5 
-            var input = new string[] {  "let x = mmm12 * 3; " };
+            var input = new string[] { "let x = mmm12 * 3; " };
             foreach (var item in input)
             {
                 var lexer = Lexer.Create(item);
                 var p = Parser.Create(lexer);
                 var list = p.ParserProgram();
                 Console.WriteLine(list.OutLine());
-              
-              
+            }
+        }
+        public static void EvalDouble()
+        {
+            var input = new string[] { "5 ", "99.36", "true", "false" };
+            foreach (var item in input)
+            {
+
+                var lexer = Lexer.Create(item);
+                var p = Parser.Create(lexer);
+                var list = p.ParserProgram();
+                var eval = Eval.Create().InitEval(list);
+                Console.WriteLine((eval as MonkeyDouble).Value);
+
+            }
+        }
+
+        public static void EvalBoolean()
+        {
+            var input = new string[] { "5 ", "99.36", "true", "false" };
+
+            EvalTest(input);
+        }
+        public static void EvalDoubles()
+        {
+            var input = new string[] { "-5 ", "!!99.36", "!true", "false","-true" };
+
+            EvalTest(input);
+        }
+        public static void EvalTest(string[] input)
+        {
+            foreach (var item in input)
+            {
+                var lexer = Lexer.Create(item);
+                var p = Parser.Create(lexer);
+                var list = p.ParserProgram();
+                var eval = Eval.Create().InitEval(list);
+                Monkeyobject output = eval;
+                Console.WriteLine(output.Inspect());
             }
         }
         public static void Start()
         {
-            FN2();
+            EvalDoubles();
         }
     }
 }
