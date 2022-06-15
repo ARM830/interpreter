@@ -30,10 +30,10 @@ namespace 解释器
 
         public string OutLine()
         {
-            string str=string.Empty;
+            string str = string.Empty;
             foreach (var item in Statement)
             {
-                str+=item.OutLine();
+                str += item.OutLine();
             }
             return str;
         }
@@ -188,7 +188,138 @@ namespace 解释器
 
         public string OutLine()
         {
-            var str = $"({Left.OutLine()} {Operator}  {Right.OutLine()})";
+            var str = $"({Left.OutLine()} {Operator}  {Right?.OutLine()})";
+            return str;
+        }
+
+        public string TokenLiteral()
+        {
+            return Token.Literal;
+        }
+    }
+    class BooleanExpression : IExpression
+    {
+        public Token Token { get; set; }
+        public bool Value { get; set; }
+        public void ExpressionNode()
+        {
+            throw new NotImplementedException();
+        }
+
+        public string OutLine()
+        {
+            return Token.Literal;
+        }
+
+        public string TokenLiteral()
+        {
+            return Token.Literal;
+        }
+    }
+    class BlockStatement : IStatement
+    {
+        public Token Token { get; set; }
+
+        public List<IStatement> Statements { get; set; } = new List<IStatement>();
+
+
+        public string OutLine()
+        {
+            var str = string.Empty;
+            foreach (var item in Statements)
+            {
+                str += item?.OutLine();
+            }
+            return str;
+        }
+
+        public void StatementNode()
+        {
+            throw new NotImplementedException();
+        }
+
+        public string TokenLiteral()
+        {
+            return Token.Literal;
+        }
+    }
+    class IFExpression : IExpression
+    {
+        public Token Token { get; set; }
+        public IExpression Condition { get; set; }
+        public BlockStatement Consequence { get; set; }
+        public BlockStatement Alternative { get; set; }
+        public void ExpressionNode()
+        {
+            throw new NotImplementedException();
+        }
+
+        public string OutLine()
+        {
+            var str = $"if {Condition?.OutLine()} {Consequence?.OutLine()}\r\n";
+            str += Consequence != null ? $"else {Consequence.OutLine()}" : "";
+            return str;
+        }
+
+        public string TokenLiteral()
+        {
+            return Token.Literal;
+        }
+    }
+
+    class FunctionLiteral : IExpression
+    {
+        public Token Token { get; set; }
+        public List<Identifier> Parameter { get; set; } = new List<Identifier>();
+
+        public BlockStatement Body { get; set; }
+
+
+        public void ExpressionNode()
+        {
+            throw new NotImplementedException();
+        }
+
+        public string OutLine()
+        {
+            string str = string.Empty, param = string.Empty;
+            foreach (var item in Parameter)
+            {
+                param += item?.OutLine();
+            }
+            str += TokenLiteral();
+            str += $"({string.Join(",",param)})\r\n{Body.OutLine()}";
+            return str;
+
+        }
+        public string TokenLiteral()
+        {
+            return Token.Literal;
+        }
+
+    }
+
+    class CallExpression : IExpression
+    {
+        public Token Token { get; set; }
+        public IExpression Function { get; set; }
+        public List<IExpression> Arguments { get; set; }
+
+
+        public void ExpressionNode()
+        {
+            throw new NotImplementedException();
+        }
+
+        public string OutLine()
+        {
+            string str = string.Empty, param = string.Empty;
+            foreach (var item in Arguments)
+            {
+                param += item?.OutLine();
+            }
+            str += Function.OutLine();
+            str += $"({string.Join(",", param)})";
             return str;
         }
 

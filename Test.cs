@@ -81,7 +81,8 @@ namespace 解释器
         public static void Infix()
         {
             //var input = "5 + 5; 5 - 5;5 * 5;5 / 5;5 > 5;5 == 5;";
-            var input = new string[] { "-a * b ", "!-a" ,"a + b + c" ,"3 + 4; -5 * 5"};
+            //var input = new string[] { "-a * b ", "!-a" ,"a + b + c" ,"3 + 4; -5 * 5"};
+            var input = new string[] { "-1+2", };
             foreach (var item in input)
             {
                 var lexer = Lexer.Create(item);
@@ -90,9 +91,46 @@ namespace 解释器
                 Console.WriteLine(list.OutLine());
             }
         }
+        public static void IFELSE()
+        {
+            var input = new string[] { "if (x < y) { x } else { y } ", };
+            foreach (var item in input)
+            {
+                var lexer = Lexer.Create(item);
+                var p = Parser.Create(lexer);
+                var list = p.ParserProgram();
+                Console.WriteLine(list.OutLine());
+            }
+        }
+        public static void FN()
+        {
+            var input = new string[] { "fn(x) {};", "fn(x,y,z) {};", };
+            foreach (var item in input)
+            {
+                var lexer = Lexer.Create(item);
+                var p = Parser.Create(lexer);
+                var list = p.ParserProgram();
+                Console.WriteLine((list.Statement[0] as ExpressionStatement).Expression.OutLine());
+
+            }
+        }
+        public static void FN2()
+        {
+            //let x = 1 * 2 * 3 * 4 * 5 
+            var input = new string[] {  "let x = mmm12 * 3; " };
+            foreach (var item in input)
+            {
+                var lexer = Lexer.Create(item);
+                var p = Parser.Create(lexer);
+                var list = p.ParserProgram();
+                Console.WriteLine(list.OutLine());
+              
+              
+            }
+        }
         public static void Start()
         {
-            Infix();
+            FN2();
         }
     }
 }

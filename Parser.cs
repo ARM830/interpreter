@@ -22,7 +22,12 @@ namespace 解释器
             RegisterPrefix(TokenEnum.Double, ParseDoubleLiteral);
             RegisterPrefix(TokenEnum.BANG, ParsePrefixExpression);
             RegisterPrefix(TokenEnum.MINUS, ParsePrefixExpression);
-          //  RegisterPrefix(TokenEnum.LPAREN, ParseGroupedExpression);
+            RegisterPrefix(TokenEnum.TRUE, ParseBooleanExpression);
+            RegisterPrefix(TokenEnum.FALSE, ParseBooleanExpression);
+            RegisterPrefix(TokenEnum.LPAREN, ParseGroupedExpression);
+            RegisterPrefix(TokenEnum.IF, ParseIFExpression);
+            RegisterPrefix(TokenEnum.FUNCTION, ParseFunctionLiteral);
+
             Registerinfix(TokenEnum.PLUS, ParseInfixExpression);
             Registerinfix(TokenEnum.MINUS, ParseInfixExpression);
             Registerinfix(TokenEnum.SLASH, ParseInfixExpression);
@@ -31,6 +36,122 @@ namespace 解释器
             Registerinfix(TokenEnum.Not_EQ, ParseInfixExpression);
             Registerinfix(TokenEnum.LT, ParseInfixExpression);
             Registerinfix(TokenEnum.GT, ParseInfixExpression);
+            Registerinfix(TokenEnum.FUNCTION, ParseCallExpression);
+        }
+        public List<IExpression> ParseCallArguments()
+        {
+            var list = new List<IExpression>();
+            if (PeekTokenIs(TokenEnum.RPAREN))
+            {
+                NextToken();
+                return list;
+            }
+            NextToken();
+            list.Add(ParseExpression());
+            while (PeekTokenIs(TokenEnum.COMMA))
+            {
+                NextToken();
+                NextToken();
+                list.Add(ParseExpression());
+            }
+            if (!ExpectPeek(TokenEnum.RPAREN))
+            {
+                return null;
+            }
+            return list;
+        }
+        public IExpression ParseCallExpression(IExpression func)
+        {
+            var exp = new CallExpression() {Token=CurToken,Function=func };
+            exp.Arguments = ParseCallArguments();
+            return exp;
+        }
+        public IExpression ParseFunctionLiteral()
+        {
+            var exp = new FunctionLiteral() { Token = CurToken };
+            if (!ExpectPeek(TokenEnum.LPAREN))
+            {
+                return null;
+            }
+            exp.Parameter = ParseFunctionParameter();
+            if (!ExpectPeek(TokenEnum.LBRACE))
+            {
+                return null;
+            }
+            exp.Body = ParseBlockStatement();
+            return exp;
+        }
+        public List<Identifier> ParseFunctionParameter()
+        {
+            var list = new List<Identifier>();
+            if (PeekTokenIs(TokenEnum.RPAREN))
+            {
+                NextToken();
+                return list;
+            }
+            NextToken();
+            var ident=new Identifier() { Token=CurToken,Value=CurToken.Literal};
+            list.Add(ident);
+            while (PeekTokenIs(TokenEnum.COMMA))
+            {
+                NextToken();
+                NextToken();
+                ident = new Identifier() { Token = CurToken, Value = CurToken.Literal };
+                list.Add(ident);
+            }
+            if (!ExpectPeek(TokenEnum.RPAREN))
+            {
+                return null;
+            }
+            return list;
+        }
+        public IExpression ParseIFExpression()
+        {
+            var exp = new IFExpression() {Token=CurToken };
+            if (!ExpectPeek(TokenEnum.LPAREN))
+            {
+                return null;
+            }
+            NextToken();
+            exp.Condition = ParseExpression();
+            if (!ExpectPeek(TokenEnum.RPAREN))
+            {
+                return null;
+            }
+            if (!ExpectPeek(TokenEnum.LBRACE))
+            {
+                return null;
+            }
+            exp.Consequence = ParseBlockStatement();
+            if (PeekTokenIs(TokenEnum.ELSE))
+            {
+                NextToken();
+                if (!ExpectPeek(TokenEnum.LBRACE))
+                {
+                    return null;
+                }
+                exp.Alternative=ParseBlockStatement();
+            }
+            return exp;
+        }
+        public BlockStatement ParseBlockStatement()
+        {
+            var block = new BlockStatement() { Token = CurToken };
+            NextToken();
+            while (!CurTokenIs(TokenEnum.RBRACE) &&!CurTokenIs(TokenEnum.EOF))
+            {
+                var stmt = ParseStatement();
+                if (stmt!=null)
+                {
+                    block.Statements.Add(stmt);
+                }
+                NextToken();
+            }
+            return block;
+        }
+        public IExpression ParseBooleanExpression()
+        {
+            return new BooleanExpression() { Token = CurToken, Value =CurTokenIs(TokenEnum.TRUE) };
         }
         public IExpression ParseGroupedExpression()
         {
@@ -95,27 +216,42 @@ namespace 解释器
             var stmt = new LetStatement() { Token = CurToken };
             if (!ExpectPeek(TokenEnum.IDENT))
             {
+                CurError(stmt);
+                PeekError(TokenEnum.IDENT);
                 return null;
             }
             stmt.Name = new Identifier() { Token = CurToken, Value = CurToken.Literal };
             if (!ExpectPeek(TokenEnum.ASSIGN))
             {
+                CurError(stmt);
+                PeekError(TokenEnum.ASSIGN);
                 return null;
             }
-            while (!CurTokenIs(TokenEnum.SEMICOLON))
+            NextToken();
+            stmt.Value = ParseExpression();
+            if (PeekTokenIs(TokenEnum.SEMICOLON))
             {
                 NextToken();
             }
+          // while (!CurTokenIs(TokenEnum.SEMICOLON))
+          // {
+          //     NextToken();
+          // }
             return stmt;
         }
         public ReturnStatement ParserRuturnStatement()
         {
             var stmt = new ReturnStatement() { Token = CurToken };
             NextToken();
-            while (!CurTokenIs(TokenEnum.SEMICOLON))
+            stmt.Value = ParseExpression();
+            if (PeekTokenIs(TokenEnum.SEMICOLON))
             {
                 NextToken();
             }
+            //while (!CurTokenIs(TokenEnum.SEMICOLON))
+            //{
+            //    NextToken();
+            //}
             return stmt;
         }
         public bool ExpectPeek(TokenEnum token)
@@ -184,9 +320,14 @@ namespace 解释器
             }
             return code;
         }
+        public void CurError(IStatement err)
+        {
+            var error = $"{err.TokenLiteral()} err ";
+            Console.WriteLine(error);
+        }
         public void PeekError(TokenEnum token)
         {
-            var error = $"expected next token to be {token}, got {PeekToken.Literal} instead";
+            var error = $"expected next token to be {token}, got {PeekToken.TokenType} instead ";
             Console.WriteLine(error);
             Error.Add(error);
         }

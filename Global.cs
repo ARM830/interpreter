@@ -144,6 +144,7 @@ namespace 解释器
             { TokenEnum.MINUS, Lowset.SUM },
             { TokenEnum.SLASH, Lowset.PRODUCT },
             { TokenEnum.ASTERISK, Lowset.PRODUCT },
+            {TokenEnum.FUNCTION,Lowset.CALL }
         };
 
         public static readonly Dictionary<char, Token> TokenPairs = new Dictionary<char, Token>()
