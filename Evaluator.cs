@@ -163,13 +163,8 @@ namespace 解释器
                     if (IsError(block))
                         return block;
                     return block;
-                case IFExpression ifExpression:
-                    var exp = EvalIfExpression(ifExpression, environment);
-                    if (IsError(exp))
-                    {
-                        return exp;
-                    }
-                    return EvalIfExpression(ifExpression, environment);
+                case IFExpression ifExpression:                 
+                    return   EvalIfExpression(ifExpression, environment);;
                 case ReturnStatement returnStatement:
                     var val = Eval(returnStatement.Value, environment);
                     if (IsError(val))
@@ -184,9 +179,20 @@ namespace 解释器
                         return let;
                     }
                     environment.Set(letStatement.Name.Value, let);
-                    break;
+                    return let;
+                case Identifier identifier:
+                    return EvalIdentifier(identifier, environment);
             }
             return null;
+        }
+        public IMonkeyobject EvalIdentifier(Identifier id, MonkeyEnvironment env)
+        {
+            var tp = env.Get(id.Value);
+            if (!tp.Item2)
+            {
+                return CreateError("id not fine" + tp.Item1.Inspect());
+            }
+            return tp.Item1;
         }
         public MonkeyError CreateError(params string[] msg)
         {
@@ -245,6 +251,10 @@ namespace 解释器
         public IMonkeyobject EvalIfExpression(IFExpression expression, MonkeyEnvironment environment)
         {
             var condiion = Eval(expression.Condition, environment);
+            if (IsError(condiion))
+            {
+                return condiion;
+            }
             if (IsTruthy(condiion))
             {
                 return Eval(expression.Consequence, environment);

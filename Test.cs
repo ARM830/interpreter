@@ -166,14 +166,14 @@ namespace 解释器
                 " if (5 * 5 + 10 > 34) { 99 } else { 100 } ",
                 "if (false){10}"
             };
-            EvalTest(Tuple.Create(input, new List<IMonkeyobject> { new MonkeyDouble() { Value = 99 }, new MonkeyNull()}));
+            EvalTest(Tuple.Create(input, new List<IMonkeyobject> { new MonkeyDouble() { Value = 99 }, new MonkeyNull() }));
         }
         public static void EvalReturn()
         {
             var input = new string[]
             {
                 "if (10 > 1){if (10 > 1){return 10;}return 1;}"
-                
+
             };
             EvalTest(Tuple.Create(input, new List<IMonkeyobject> { new MonkeyDouble() { Value = 10 } }));
         }
@@ -187,6 +187,24 @@ namespace 解释器
            };
             EvalTest(input);
         }
+        public static void Evalid()
+        {
+            //"true + false;
+            var input = new string[]
+           {
+                "let id=5;" +
+                "if(id==5)" +
+                "{ " +
+                "let id=99; " +
+                "return 66;" +
+                "}" +
+                "else{" +
+                "return true;" +
+                "}"
+
+           };
+            EvalTest(input);
+        }
         public static void EvalTest(string[] input)
         {
             foreach (var item in input)
@@ -194,7 +212,7 @@ namespace 解释器
                 var lexer = Lexer.Create(item);
                 var p = Parser.Create(lexer);
                 var list = p.ParserProgram();
-                var eval = Evaluator.Create().Eval(list,MonkeyEnvironment.Create());
+                var eval = Evaluator.Create().Eval(list, MonkeyEnvironment.Create());
                 IMonkeyobject output = eval;
                 Console.WriteLine(output.Inspect());
             }
@@ -225,7 +243,7 @@ namespace 解释器
         }
         public static void Start()
         {
-            EvalError();
+            Evalid();
         }
     }
 }
