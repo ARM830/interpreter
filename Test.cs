@@ -135,7 +135,7 @@ namespace 解释器
                 var lexer = Lexer.Create(item);
                 var p = Parser.Create(lexer);
                 var list = p.ParserProgram();
-                var eval = Eval.Create().InitEval(list);
+                var eval = Evaluator.Create().Eval(list, MonkeyEnvironment.Create());
                 Console.WriteLine((eval as MonkeyDouble).Value);
 
             }
@@ -149,8 +149,42 @@ namespace 解释器
         }
         public static void EvalDoubles()
         {
-            var input = new string[] { "-5 ", "!!99.36", "!true", "false","-true" };
+            var input = new string[] { "-5 ", "!!99.36", "!true", "false", "-true" };
 
+            EvalTest(input);
+        }
+        public static void EvalDoublesMid()
+        {
+            var input = new string[] { " 500 / 2 != 250 ", "3 * (3 * 3.6) + 10", "5==6", "1==2", "3!=3", "2==2", "3 + 4 * 5 == 3 * 1 + 4 * 5" };
+
+            EvalTest(input);
+        }
+        public static void EvalIf()
+        {
+            var input = new string[]
+            {
+                " if (5 * 5 + 10 > 34) { 99 } else { 100 } ",
+                "if (false){10}"
+            };
+            EvalTest(Tuple.Create(input, new List<IMonkeyobject> { new MonkeyDouble() { Value = 99 }, new MonkeyNull()}));
+        }
+        public static void EvalReturn()
+        {
+            var input = new string[]
+            {
+                "if (10 > 1){if (10 > 1){return 10;}return 1;}"
+                
+            };
+            EvalTest(Tuple.Create(input, new List<IMonkeyobject> { new MonkeyDouble() { Value = 10 } }));
+        }
+        public static void EvalError()
+        {
+            //"true + false;
+            var input = new string[]
+           {
+                "true + false;"
+
+           };
             EvalTest(input);
         }
         public static void EvalTest(string[] input)
@@ -160,14 +194,38 @@ namespace 解释器
                 var lexer = Lexer.Create(item);
                 var p = Parser.Create(lexer);
                 var list = p.ParserProgram();
-                var eval = Eval.Create().InitEval(list);
-                Monkeyobject output = eval;
+                var eval = Evaluator.Create().Eval(list,MonkeyEnvironment.Create());
+                IMonkeyobject output = eval;
                 Console.WriteLine(output.Inspect());
+            }
+        }
+        public static void EvalTest(Tuple<string[], List<IMonkeyobject>> input)
+        {
+            for (int i = 0; i < input.Item1.Length; i++)
+            {
+                var item = input.Item1[i];
+                var lexer = Lexer.Create(item);
+                var p = Parser.Create(lexer);
+                var list = p.ParserProgram();
+                var eval = Evaluator.Create().Eval(list, MonkeyEnvironment.Create());
+                IMonkeyobject output = eval;
+                if (output != null)
+                {
+                    if (output.Inspect() == input.Item2[i].Inspect())
+                    {
+                        Console.WriteLine($"output eq  value is {output.Inspect()}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"output not eq  value is {output.Inspect()}");
+                    }
+
+                }
             }
         }
         public static void Start()
         {
-            EvalDoubles();
+            EvalError();
         }
     }
 }

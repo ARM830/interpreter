@@ -10,7 +10,9 @@ namespace 解释器
     {
         Boolean_Obj,
         Double_Obj,
-        Null_Obj
+        Null_Obj,
+        Return_Obj,
+        Error_Obj,
     }
     enum Lowset
     {
@@ -145,6 +147,8 @@ namespace 解释器
             {MonkeyTypeEnum.Double_Obj, "Double" },
             {MonkeyTypeEnum.Boolean_Obj, "Boolean" },
             {MonkeyTypeEnum.Null_Obj, "Null" },
+             {MonkeyTypeEnum.Error_Obj, "Error" },
+              {MonkeyTypeEnum.Return_Obj, "Return" },
         };
         public static readonly Dictionary<TokenEnum, Lowset> Precedences = new Dictionary<TokenEnum, Lowset>()
         {
