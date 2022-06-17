@@ -14,7 +14,8 @@ namespace 解释器
         Return_Obj,
         Error_Obj,
         Function_Obj,
-        String_Obj
+        String_Obj,
+        Builtin_Obj
     }
     enum Lowset
     {
@@ -148,6 +149,7 @@ namespace 解释器
     }
     static class Global
     {
+        public delegate IMonkeyobject BuiltinFunction(List<IMonkeyobject> args);
         public static readonly Dictionary<MonkeyTypeEnum, string> MonkeyTypePairs = new Dictionary<MonkeyTypeEnum, string>()
         {
             {MonkeyTypeEnum.Double_Obj, "Double" },
@@ -157,6 +159,7 @@ namespace 解释器
             {MonkeyTypeEnum.Return_Obj, "Return" },
             {MonkeyTypeEnum.Function_Obj, "Function" },
             {MonkeyTypeEnum.String_Obj, "String" },
+            {MonkeyTypeEnum.Builtin_Obj, "Builtin" },
         };
         public static readonly Dictionary<TokenEnum, Lowset> Precedences = new Dictionary<TokenEnum, Lowset>()
         {

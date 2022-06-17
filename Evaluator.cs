@@ -146,6 +146,25 @@ namespace 解释器
             return Global.MonkeyTypePairs[MonkeyObjectEnumType()];
         }
     }
+    class MonkeyBuiltin : IMonkeyobject
+    {
+        public Global.BuiltinFunction Function { get; set; }
+        public string Inspect()
+        {
+            return "Bulition Function";
+        }
+
+        public MonkeyTypeEnum MonkeyObjectEnumType()
+        {
+            return MonkeyTypeEnum.Builtin_Obj;
+        }
+
+        public string MonkeyObjectType()
+        {
+            return Global.MonkeyTypePairs[MonkeyObjectEnumType()];
+        }
+    }
+
     internal class Evaluator
     {
         public static Evaluator Create()
@@ -160,8 +179,16 @@ namespace 解释器
         }
         private Evaluator()
         {
-
+            MonkeyBuiltin monkeyBuiltin = new MonkeyBuiltin
+            {
+                Function = new Global.BuiltinFunction(Len)
+            };
+            BuiltinPairs = new Dictionary<string, MonkeyBuiltin>
+            {
+                { "len", monkeyBuiltin }
+            };
         }
+        private Dictionary<string, MonkeyBuiltin> BuiltinPairs;
         private readonly Dictionary<bool, MonkeyBoolean> BoolValuePairs = new Dictionary<bool, MonkeyBoolean>()
         {
             {true,new MonkeyBoolean(){ Value=true} },
@@ -244,17 +271,18 @@ namespace 解释器
         }
         public IMonkeyobject ApplyFunction(IMonkeyobject fun, List<IMonkeyobject> args)
         {
-            if (fun is MonkeyFunction monkeyFunction)
-            {
-                var extendedenv = ExtendFunctionEnv(monkeyFunction, args);
-                var eval = Eval(monkeyFunction.Body, extendedenv);
-                return UnwarpReturnValue(eval);
-            }
-            else
-            {
-                return CreateError($"not a function {fun.MonkeyObjectType()}");
-            }
 
+            switch (fun)
+            {
+                case MonkeyFunction monkeyFunction:
+                    var extendedenv = ExtendFunctionEnv(monkeyFunction, args);
+                    var eval = Eval(monkeyFunction.Body, extendedenv);
+                    return UnwarpReturnValue(eval);
+                case MonkeyBuiltin builtin:
+                    return builtin.Function?.Invoke(args);
+                default:
+                    return CreateError($"not a function {fun.MonkeyObjectType()}");
+            }
         }
         public MonkeyEnvironment ExtendFunctionEnv(MonkeyFunction monkeyFunction, List<IMonkeyobject> args)
         {
@@ -287,14 +315,34 @@ namespace 解释器
             }
             return result;
         }
+
+        private IMonkeyobject Len(List<IMonkeyobject> args)
+        {
+            if (args.Count != 1)
+            {
+                return CreateError("wrong  number of argument");
+            }
+            switch (args[0])
+            {
+                case MonkeyString monkeyString:
+                    return new MonkeyDouble() { Value = monkeyString.Value.Length };
+                default:
+                    return CreateError("wrong  number of argument");
+
+            }
+        }
         public IMonkeyobject EvalIdentifier(Identifier id, MonkeyEnvironment env)
         {
             var tp = env.Get(id.Value);
-            if (!tp.Item2)
+            if (tp.Item2)
             {
-                return CreateError("id not fine  " + id.Value);
+                return tp.Item1;
             }
-            return tp.Item1;
+            if (BuiltinPairs.TryGetValue(id.Value, out MonkeyBuiltin builtin))
+            {
+                return builtin;
+            }
+            return CreateError("id not fine  " + id.Value);
         }
         public MonkeyError CreateError(params string[] msg)
         {
