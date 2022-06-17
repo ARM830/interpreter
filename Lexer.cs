@@ -131,6 +131,9 @@ namespace 解释器
                 case '.':
                     token = new Token(TokenEnum.OP, CharValue);
                     break;
+                case '"':
+                    token = new Token(TokenEnum.STRING, ReadString());
+                    break;
                 default:
                     token = new Token();
 
@@ -156,6 +159,23 @@ namespace 解释器
             }
             ReadChar();
             return token;
+        }
+        public string ReadString()
+        {
+            int count =0;
+            var pos = Position + 1;
+            while (true)
+            {
+                ReadChar();
+                count++;
+                if (Input[this.Position] == '"' || Input[this.Position] == char.MinValue)
+                {
+                    count--;
+                    break;
+                }
+               
+            }
+            return Input.Substring(pos, count);
         }
         /// <summary>
         /// 读取id

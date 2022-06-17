@@ -212,6 +212,8 @@ namespace 解释器
            {
                 "let double = fn(x) { x * 2; }; double(5);",
                 " let newAdder = fn(x) { fn(y) { x + y } } let addTwo = newAdder(6.6); addTwo(3);",
+                "let x=\"This is amazing!\";let xo=fn(u){return x+u;} xo(\"kkk\");",
+                "let x=\"a\";let b=\"a\" ;return a!=b;"
            };
             EvalTest(input);
         }

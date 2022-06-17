@@ -128,7 +128,24 @@ namespace 解释器
             return Global.MonkeyTypePairs[MonkeyObjectEnumType()];
         }
     }
+    class MonkeyString : IMonkeyobject
+    {
+        public string Value { get; set; }
+        public string Inspect()
+        {
+            return Value;
+        }
 
+        public MonkeyTypeEnum MonkeyObjectEnumType()
+        {
+            return MonkeyTypeEnum.String_Obj;
+        }
+
+        public string MonkeyObjectType()
+        {
+            return Global.MonkeyTypePairs[MonkeyObjectEnumType()];
+        }
+    }
     internal class Evaluator
     {
         public static Evaluator Create()
@@ -220,6 +237,8 @@ namespace 解释器
                     if (arg.Count == 1 && IsError(arg[0]))
                         return arg[0];
                     return ApplyFunction(func, arg);
+                case StringLiteral stringLiteral:
+                    return new MonkeyString() { Value = stringLiteral.Value };
             }
             return null;
         }
@@ -273,7 +292,7 @@ namespace 解释器
             var tp = env.Get(id.Value);
             if (!tp.Item2)
             {
-                return CreateError("id not fine" + tp.Item1.Inspect());
+                return CreateError("id not fine  " + id.Value);
             }
             return tp.Item1;
         }
@@ -397,9 +416,27 @@ namespace 解释器
                     //        return BoolValuePairs[left.Inspect() != right.Inspect()];
                     //}
                     return EvalDoubleInfixExpression(op, left, right);
+                case IMonkeyobject l when (l.MonkeyObjectEnumType() == MonkeyTypeEnum.String_Obj) && (right.MonkeyObjectEnumType() == MonkeyTypeEnum.String_Obj):
+                    return EvalStringInfixExpressoin(op, left, right);
                 default:
                     return CreateError("unknown operator", left.MonkeyObjectType(), op, right.MonkeyObjectType());
             }
+        }
+        public IMonkeyobject EvalStringInfixExpressoin(string op, IMonkeyobject left, IMonkeyobject right)
+        {
+
+            switch (op)
+            {
+                case "!=":
+                    return this.BoolValuePairs[(left as MonkeyString).Value != (right as MonkeyString).Value];
+                case "==":
+                    return this.BoolValuePairs[(left as MonkeyString).Value == (right as MonkeyString).Value];
+                case "+":
+                    return new MonkeyString { Value = (left as MonkeyString).Value + (right as MonkeyString).Value };
+                default:
+                    return CreateError("unknown operator", left.MonkeyObjectType(), op, right.MonkeyObjectType());
+            }
+
         }
         public IMonkeyobject EvalDoubleInfixExpression(string op, IMonkeyobject left, IMonkeyobject right)
         {

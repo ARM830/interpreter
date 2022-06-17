@@ -13,7 +13,8 @@ namespace 解释器
         Null_Obj,
         Return_Obj,
         Error_Obj,
-        Function_Obj
+        Function_Obj,
+        String_Obj
     }
     enum Lowset
     {
@@ -138,7 +139,11 @@ namespace 解释器
         /// <summary>
         /// dot 操作
         /// </summary>
-        OP
+        OP,
+        /// <summary>
+        /// string
+        /// </summary>
+        STRING
 
     }
     static class Global
@@ -151,6 +156,7 @@ namespace 解释器
             {MonkeyTypeEnum.Error_Obj, "Error" },
             {MonkeyTypeEnum.Return_Obj, "Return" },
             {MonkeyTypeEnum.Function_Obj, "Function" },
+            {MonkeyTypeEnum.String_Obj, "String" },
         };
         public static readonly Dictionary<TokenEnum, Lowset> Precedences = new Dictionary<TokenEnum, Lowset>()
         {

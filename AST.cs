@@ -288,7 +288,7 @@ namespace 解释器
                 param += item?.OutLine();
             }
             str += TokenLiteral();
-            str += $"({string.Join(",",param)})\r\n{Body.OutLine()}";
+            str += $"({string.Join(",", param)})\r\n{Body.OutLine()}";
             return str;
 
         }
@@ -321,6 +321,25 @@ namespace 解释器
             str += Function.OutLine();
             str += $"({string.Join(",", param)})";
             return str;
+        }
+
+        public string TokenLiteral()
+        {
+            return Token.Literal;
+        }
+    }
+    class StringLiteral : IExpression
+    {
+        public Token Token { get; set; }
+        public string Value { get; set; }
+        public void ExpressionNode()
+        {
+            throw new NotImplementedException();
+        }
+
+        public string OutLine()
+        {
+            return Token.Literal;
         }
 
         public string TokenLiteral()
