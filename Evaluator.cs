@@ -102,6 +102,32 @@ namespace 解释器
             return Global.MonkeyTypePairs[MonkeyObjectEnumType()];
         }
     }
+    class MonkeyFunction : IMonkeyobject
+    {
+        public List<Identifier> Parameter { get; set; }
+        public BlockStatement Body { get; set; }
+        public MonkeyEnvironment Env { get; set; }
+        public string Inspect()
+        {
+            string str = string.Empty;
+            foreach (var item in Parameter)
+            {
+                str += item.OutLine();
+            }
+            str += $"fn\r\n({string.Join(", ", str)}){{\n{Body.OutLine()}\n}}";
+            return str;
+        }
+
+        public MonkeyTypeEnum MonkeyObjectEnumType()
+        {
+            return MonkeyTypeEnum.Function_Obj;
+        }
+
+        public string MonkeyObjectType()
+        {
+            return Global.MonkeyTypePairs[MonkeyObjectEnumType()];
+        }
+    }
 
     internal class Evaluator
     {
@@ -163,8 +189,8 @@ namespace 解释器
                     if (IsError(block))
                         return block;
                     return block;
-                case IFExpression ifExpression:                 
-                    return   EvalIfExpression(ifExpression, environment);;
+                case IFExpression ifExpression:
+                    return EvalIfExpression(ifExpression, environment); ;
                 case ReturnStatement returnStatement:
                     var val = Eval(returnStatement.Value, environment);
                     if (IsError(val))
@@ -182,8 +208,65 @@ namespace 解释器
                     return let;
                 case Identifier identifier:
                     return EvalIdentifier(identifier, environment);
+                case FunctionLiteral functionLiteral:
+                    var param = functionLiteral.Parameter;
+                    var body = functionLiteral.Body;
+                    return new MonkeyFunction() { Body = body, Parameter = param, Env = environment };
+                case CallExpression callExpression:
+                    var func = Eval(callExpression.Function, environment);
+                    if (IsError(func))
+                        return func;
+                    var arg = EvalExpressions(callExpression.Arguments, environment);
+                    if (arg.Count == 1 && IsError(arg[0]))
+                        return arg[0];
+                    return ApplyFunction(func, arg);
             }
             return null;
+        }
+        public IMonkeyobject ApplyFunction(IMonkeyobject fun, List<IMonkeyobject> args)
+        {
+            if (fun is MonkeyFunction monkeyFunction)
+            {
+                var extendedenv = ExtendFunctionEnv(monkeyFunction, args);
+                var eval = Eval(monkeyFunction.Body, extendedenv);
+                return UnwarpReturnValue(eval);
+            }
+            else
+            {
+                return CreateError($"not a function {fun.MonkeyObjectType()}");
+            }
+
+        }
+        public MonkeyEnvironment ExtendFunctionEnv(MonkeyFunction monkeyFunction, List<IMonkeyobject> args)
+        {
+            var env = MonkeyEnvironment.New(monkeyFunction.Env);
+            for (int i = 0; i < monkeyFunction.Parameter.Count; i++)
+            {
+                env.Set(monkeyFunction.Parameter[i].Value, args[i]);
+            }
+            return env;
+        }
+        public IMonkeyobject UnwarpReturnValue(IMonkeyobject obj)
+        {
+            if (obj is MonkeyReturn monkeyReturn)
+            {
+                return monkeyReturn.Value;
+            }
+            return obj;
+        }
+        public List<IMonkeyobject> EvalExpressions(List<IExpression> exps, MonkeyEnvironment environment)
+        {
+            var result = new List<IMonkeyobject>();
+            foreach (var item in exps)
+            {
+                var eval = Eval(item, environment);
+                if (IsError(eval))
+                {
+                    return new List<IMonkeyobject> { eval };
+                }
+                result.Add(eval);
+            }
+            return result;
         }
         public IMonkeyobject EvalIdentifier(Identifier id, MonkeyEnvironment env)
         {

@@ -205,6 +205,16 @@ namespace 解释器
            };
             EvalTest(input);
         }
+        public static void Evalfunc()
+        {
+            //"true + false;
+            var input = new string[]
+           {
+                "let double = fn(x) { x * 2; }; double(5);",
+                " let newAdder = fn(x) { fn(y) { x + y } } let addTwo = newAdder(6.6); addTwo(3);",
+           };
+            EvalTest(input);
+        }
         public static void EvalTest(string[] input)
         {
             foreach (var item in input)
@@ -243,7 +253,7 @@ namespace 解释器
         }
         public static void Start()
         {
-            Evalid();
+            Evalfunc();
         }
     }
 }

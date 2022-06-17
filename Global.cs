@@ -13,6 +13,7 @@ namespace 解释器
         Null_Obj,
         Return_Obj,
         Error_Obj,
+        Function_Obj
     }
     enum Lowset
     {
@@ -147,8 +148,9 @@ namespace 解释器
             {MonkeyTypeEnum.Double_Obj, "Double" },
             {MonkeyTypeEnum.Boolean_Obj, "Boolean" },
             {MonkeyTypeEnum.Null_Obj, "Null" },
-             {MonkeyTypeEnum.Error_Obj, "Error" },
-              {MonkeyTypeEnum.Return_Obj, "Return" },
+            {MonkeyTypeEnum.Error_Obj, "Error" },
+            {MonkeyTypeEnum.Return_Obj, "Return" },
+            {MonkeyTypeEnum.Function_Obj, "Function" },
         };
         public static readonly Dictionary<TokenEnum, Lowset> Precedences = new Dictionary<TokenEnum, Lowset>()
         {
@@ -160,7 +162,7 @@ namespace 解释器
             { TokenEnum.MINUS, Lowset.SUM },
             { TokenEnum.SLASH, Lowset.PRODUCT },
             { TokenEnum.ASTERISK, Lowset.PRODUCT },
-            {TokenEnum.FUNCTION,Lowset.CALL }
+            {TokenEnum.LPAREN,Lowset.CALL }
         };
 
         public static readonly Dictionary<char, Token> TokenPairs = new Dictionary<char, Token>()

@@ -8,7 +8,9 @@ namespace 解释器
 {
     internal class MonkeyEnvironment
     {
-        Dictionary<string, IMonkeyobject> Store { get; set; }
+        public Dictionary<string, IMonkeyobject> Store { get; set; }
+
+        public MonkeyEnvironment OuterEnv { get; set; }
 
         static MonkeyEnvironment()
         {
@@ -29,12 +31,25 @@ namespace 解释器
             {
                 return new Tuple<IMonkeyobject, bool>(obj, true);
             }
+            else
+            {
+                if (OuterEnv != null)
+                {
+                    return OuterEnv.Get(name);
+                }
+            }
             return new Tuple<IMonkeyobject, bool>(obj, false);
         }
         public IMonkeyobject Set(string name, IMonkeyobject monkeyobject)
         {
             Store[name] = monkeyobject;
             return monkeyobject;
+        }
+        public static MonkeyEnvironment New(MonkeyEnvironment monkeyEnvironment)
+        {
+            var env = Create();
+            env.OuterEnv = monkeyEnvironment;
+            return env;
         }
     }
 }
