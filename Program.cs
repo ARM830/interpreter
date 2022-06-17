@@ -11,7 +11,6 @@ namespace 解释器
     {
         static void Main(string[] args)
         {
-           
             Test.Start();
             Console.ReadKey();
         }
