@@ -117,7 +117,7 @@ namespace 解释器
         public static void FN2()
         {
             //let x = 1 * 2 * 3 * 4 * 5 
-            var input = new string[] {  "let x = mmm12 * 3; " };
+            var input = new string[] {  "let y =add(x){x+3};add(5); " };
             foreach (var item in input)
             {
                 var lexer = Lexer.Create(item);

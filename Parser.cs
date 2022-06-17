@@ -36,7 +36,7 @@ namespace 解释器
             Registerinfix(TokenEnum.Not_EQ, ParseInfixExpression);
             Registerinfix(TokenEnum.LT, ParseInfixExpression);
             Registerinfix(TokenEnum.GT, ParseInfixExpression);
-            Registerinfix(TokenEnum.FUNCTION, ParseCallExpression);
+            Registerinfix(TokenEnum.LPAREN, ParseCallExpression);
         }
         public List<IExpression> ParseCallArguments()
         {
