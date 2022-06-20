@@ -275,6 +275,14 @@ namespace 解释器
             };
             EvalTest(input);
         }
+        public static void End()
+        {
+            var item = "let hello = fn(){ let word=\"hello  \"+\"world!\"; return word;} puts(hello()); ";
+            var lexer = Lexer.Create(item);
+            var p = Parser.Create(lexer);
+            var list = p.ParserProgram();
+            var eval = Evaluator.Create().Eval(list, MonkeyEnvironment.Create());
+        }
         public static void EvalTestParser(string[] input)
         {
             foreach (var item in input)
@@ -285,6 +293,7 @@ namespace 解释器
                 Console.WriteLine(list.OutLine());
             }
         }
+
         public static void EvalTest(string[] input)
         {
             foreach (var item in input)
@@ -323,7 +332,7 @@ namespace 解释器
         }
         public static void Start()
         {
-            EvalHash();
+            End();
         }
     }
 }
