@@ -164,6 +164,21 @@ namespace 解释器
     }
     static class Global
     {
+        private class EntryHash : IHashKey
+        {
+            public MonkeyTypeEnum HashType { get; set; }
+            public ulong HashValue { get; set; }
+
+            public IHashKey HashKey()
+            {
+                return this;
+            }
+        }
+        public static IHashKey Create(this IHashKey hashKey)
+        {
+            EntryHash hash = new EntryHash() { HashValue = hashKey.HashValue, HashType = hashKey.HashType };
+            return hash;
+        }
         public delegate IMonkeyobject BuiltinFunction(List<IMonkeyobject> args);
         public static readonly Dictionary<MonkeyTypeEnum, string> MonkeyTypePairs = new Dictionary<MonkeyTypeEnum, string>()
         {

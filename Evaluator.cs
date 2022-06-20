@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace 解释器
 {
+
     interface IHashKey
     {
         MonkeyTypeEnum HashType { get; set; }
@@ -46,7 +47,7 @@ namespace 解释器
             var result = this as IHashKey;
             result.HashType = MonkeyTypeEnum.Double_Obj;
             result.HashValue = (ulong)Value;
-            return result;
+            return this;
         }
         public double Value { get; set; }
         public string Inspect()
@@ -75,7 +76,7 @@ namespace 解释器
             var result = this as IHashKey;
             result.HashType = MonkeyTypeEnum.Boolean_Obj;
             result.HashValue = Value ? 1UL : 0UL;
-            return result;
+            return this;
         }
 
         public string Inspect()
@@ -164,7 +165,7 @@ namespace 解释器
             var result = this as IHashKey;
             result.HashType = MonkeyTypeEnum.String_Obj;
             result.HashValue = (ulong)Value.GetHashCode();
-            return result;
+            return this;
         }
         public string Value { get; set; }
         public string Inspect()
@@ -233,9 +234,11 @@ namespace 解释器
     }
     class MonkeyHash : IMonkeyobject
     {
-        public Dictionary<IHashKey, HashPair> Pairs { get; set; }
+
+        public Dictionary<ulong, HashPair> Pairs { get; set; }
         public string Inspect()
         {
+
             var str = new List<string>();
             foreach (var item in Pairs)
             {
@@ -468,13 +471,14 @@ namespace 解释器
         public IMonkeyobject EvalHashIndexExpreesion(IMonkeyobject Hash, IMonkeyobject Index)
         {
             var hashobject = Hash as MonkeyHash;
-            hashobject.Pairs = new Dictionary<IHashKey, HashPair>();
             var ok = Index is IHashKey;
             if (!ok)
             {
                 return CreateError("unusable as hash key: ", Index.MonkeyObjectType());
             }
-            if (hashobject.Pairs.TryGetValue((Index as IHashKey).HashKey(), out HashPair hashPair))
+            var keys = (Index as IHashKey);
+            var k = keys.HashKey().HashValue.GetHashCode();
+            if (hashobject.Pairs.TryGetValue((ulong)keys.HashKey().Create().HashValue.GetHashCode(), out HashPair hashPair))
             {
                 return hashPair.Value;
             }
@@ -482,7 +486,7 @@ namespace 解释器
         }
         public IMonkeyobject EvalHashLiteral(HashLiteral hashLiteral, MonkeyEnvironment env)
         {
-            var pairs = new Dictionary<IHashKey, HashPair>();
+            var pairs = new Dictionary<ulong, HashPair>();
             foreach (var item in hashLiteral.Pairs)
             {
                 var key = Eval(item.Key, env);
@@ -501,10 +505,12 @@ namespace 解释器
                     return val;
                 }
                 var hashkey = key as IHashKey;
-                pairs[hashkey] = new HashPair() { Key = key, Value = val };
+
+                pairs.Add((ulong)hashkey.HashKey().Create().HashValue.GetHashCode(), new HashPair() { Key = key, Value = val });
             }
             return new MonkeyHash() { Pairs = pairs };
         }
+
         public IMonkeyobject EvalIndexExpression(IMonkeyobject Left, IMonkeyobject index)
         {
             switch (Left)
