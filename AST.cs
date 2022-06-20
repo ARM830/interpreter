@@ -347,4 +347,49 @@ namespace 解释器
             return Token.Literal;
         }
     }
+    class ArrayLiteral : IExpression
+    {
+        public Token Token { get; set; }
+        public List<IExpression> Element { get; set; } = new List<IExpression>();
+        public void ExpressionNode()
+        {
+            throw new NotImplementedException();
+        }
+
+        public string OutLine()
+        {
+            var ele = new List<string>();
+            foreach (var item in Element)
+            {
+                ele.Add(item.OutLine());
+            }
+            return $"[{string.Join(",", ele)}]";
+        }
+
+        public string TokenLiteral()
+        {
+            return Token.Literal;
+        }
+    }
+    class IndexExpression : IExpression
+    {
+        public Token Token { get; set; }
+        public IExpression Left { get; set; }
+
+        public IExpression Index { get; set; }
+        public void ExpressionNode()
+        {
+            throw new NotImplementedException();
+        }
+
+        public string OutLine()
+        {
+            return $"({Left?.OutLine()}[{Index?.OutLine()}])";
+        }
+
+        public string TokenLiteral()
+        {
+            return Token.Literal;
+        }
+    }
 }

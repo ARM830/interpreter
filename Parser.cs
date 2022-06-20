@@ -28,6 +28,7 @@ namespace 解释器
             RegisterPrefix(TokenEnum.IF, ParseIFExpression);
             RegisterPrefix(TokenEnum.FUNCTION, ParseFunctionLiteral);
             RegisterPrefix(TokenEnum.STRING, ParseStringLiteral);
+            RegisterPrefix(TokenEnum.LBRACKET, ParseArrayLiteral);
 
             Registerinfix(TokenEnum.PLUS, ParseInfixExpression);
             Registerinfix(TokenEnum.MINUS, ParseInfixExpression);
@@ -38,6 +39,24 @@ namespace 解释器
             Registerinfix(TokenEnum.LT, ParseInfixExpression);
             Registerinfix(TokenEnum.GT, ParseInfixExpression);
             Registerinfix(TokenEnum.LPAREN, ParseCallExpression);
+            Registerinfix(TokenEnum.LBRACKET, ParseIndexExpression);
+        }
+        public IExpression ParseIndexExpression(IExpression left)
+        {
+            var exp = new IndexExpression() { Token = CurToken, Left = left };
+            NextToken();
+            exp.Index = ParseExpression();
+            if (!ExpectPeek(TokenEnum.RBRACKET))
+            {
+                return null;
+            }
+            return exp;
+        }
+        public IExpression ParseArrayLiteral()
+        {
+            var array = new ArrayLiteral() { Token = CurToken };
+            array.Element = ParseExpressionList(TokenEnum.RBRACKET);
+            return array;
         }
         public IExpression ParseStringLiteral()
         {
@@ -65,10 +84,32 @@ namespace 解释器
             }
             return list;
         }
+        public List<IExpression> ParseExpressionList(TokenEnum end)
+        {
+            var list = new List<IExpression>();
+            if (PeekTokenIs(end))
+            {
+                NextToken();
+                return list;
+            }
+            NextToken();
+            list.Add(ParseExpression());
+            while (PeekTokenIs(TokenEnum.COMMA))
+            {
+                NextToken();
+                NextToken();
+                list.Add(ParseExpression());
+            }
+            if (!ExpectPeek(end))
+            {
+                return null;
+            }
+            return list;
+        }
         public IExpression ParseCallExpression(IExpression func)
         {
             var exp = new CallExpression() { Token = CurToken, Function = func };
-            exp.Arguments = ParseCallArguments();
+            exp.Arguments = ParseExpressionList(TokenEnum.RPAREN);
             return exp;
         }
         public IExpression ParseFunctionLiteral()

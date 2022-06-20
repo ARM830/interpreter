@@ -215,9 +215,63 @@ namespace 解释器
                 "let x=\"This is amazing!\";let xo=fn(u){return x+u;} xo(\"kkk\");",
                 "let x=\"a\";let b=\"a\" ;return a!=b;",
                 "len(\"abc\")",
-                "let x=fn(i){return len(i)*5;} x(\"jjj\")"
+                "let x=fn(i){return len(i)*5;} x(\"jjxj\")"
            };
             EvalTest(input);
+        }
+        public static void EvalArray()
+        {
+            //"a * [1, 2, 3, 4][b * c] * d",
+            var input = new string[]
+         {
+               "a * [1, 2, 3, 4][b * c] * d"
+               ,
+               "((a * ([1, 2, 3, 4][(b * c)])) * d)"
+         };
+            EvalTestParser(input);
+        }
+        public static void EvalArray2()
+        {
+            //"a * [1, 2, 3, 4][b * c] * d",
+            var input = new string[]
+            {
+               "[1, 2, 3, 4]",
+               "let double = fn(x) { x * 2 };" +
+               "[1, double(2), 3 * 3, 4 - 3] "
+            };
+            EvalTest(input);
+        }
+        public static void EvalArray3()
+        {
+            //"a * [1, 2, 3, 4][b * c] * d",
+            var input = new string[]
+            {
+               "let a = [1, 2 * 2, 10 - 5, 8 / 2]; a[99] ",
+              // "let double = fn(x) { x * 2 };" +
+              // "[1, double(2), 3 * 3, 4 - 3] "
+            };
+            EvalTest(input);
+        }
+        public static void EvalArray4()
+        {
+            //"a * [1, 2, 3, 4][b * c] * d",
+            var input = new string[]
+            {
+               "let a = [1, 2 * 2, 10 - 5, 8 / 2]; push(a,999);",
+              // "let double = fn(x) { x * 2 };" +
+              // "[1, double(2), 3 * 3, 4 - 3] "
+            };
+            EvalTest(input);
+        }
+        public static void EvalTestParser(string[] input)
+        {
+            foreach (var item in input)
+            {
+                var lexer = Lexer.Create(item);
+                var p = Parser.Create(lexer);
+                var list = p.ParserProgram();
+                Console.WriteLine(list.OutLine());
+            }
         }
         public static void EvalTest(string[] input)
         {
@@ -257,7 +311,7 @@ namespace 解释器
         }
         public static void Start()
         {
-            Evalfunc();
+            EvalArray4();
         }
     }
 }

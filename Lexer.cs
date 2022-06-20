@@ -134,6 +134,12 @@ namespace 解释器
                 case '"':
                     token = new Token(TokenEnum.STRING, ReadString());
                     break;
+                case '[':
+                    token = new Token(TokenEnum.LBRACKET, CharValue);
+                    break;
+                case ']':
+                    token = new Token(TokenEnum.RBRACKET, CharValue);
+                    break;
                 default:
                     token = new Token();
 

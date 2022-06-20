@@ -165,6 +165,32 @@ namespace 解释器
         }
     }
 
+    class MonkeyArray : IMonkeyobject
+    {
+        public List<IMonkeyobject> Elements { get; set; }
+
+        public string Inspect()
+        {
+            var str = new List<string>();
+
+            foreach (var item in Elements)
+            {
+                str.Add(item.Inspect());
+            }
+            return $"[{string.Join(",", str)}]";
+        }
+
+        public MonkeyTypeEnum MonkeyObjectEnumType()
+        {
+            return MonkeyTypeEnum.Array_Obj;
+        }
+
+        public string MonkeyObjectType()
+        {
+            return Global.MonkeyTypePairs[MonkeyObjectEnumType()];
+        }
+    }
+
     internal class Evaluator
     {
         public static Evaluator Create()
@@ -183,11 +209,95 @@ namespace 解释器
             {
                 Function = new Global.BuiltinFunction(Len)
             };
+
             BuiltinPairs = new Dictionary<string, MonkeyBuiltin>
             {
-                { "len", monkeyBuiltin }
+                { "len", monkeyBuiltin },
+                {"first",new MonkeyBuiltin ()
+                {
+                    Function=new Global.BuiltinFunction((x)=>
+                    {
+                        if (x.Count!=1)
+                        {
+                            return CreateError("Wrong number of arguments",x.Count.ToString());
+                        }
+                        if(x[0].MonkeyObjectEnumType()!= MonkeyTypeEnum.Array_Obj)
+                        {
+                          return CreateError("argument to  first  must be ARRAY",x[0].MonkeyObjectType());
+                        }
+                    var arr=x[0] as MonkeyArray;
+                    if (arr.Elements.Count>0)
+                    {
+                        return arr.Elements[0];
+                    }
+                    return this.monkeyNull;
+                })
+                }},
+                {"last",new MonkeyBuiltin(){Function=new Global.BuiltinFunction(Last) } },
+                {"rest",new MonkeyBuiltin(){Function=new Global.BuiltinFunction(Rest) } },
+                {"push",new MonkeyBuiltin(){Function=new Global.BuiltinFunction(Push) } },
             };
         }
+        public IMonkeyobject Push(List<IMonkeyobject> args)
+        {
+            if (args.Count != 2)
+            {
+                return CreateError("Wrong number of arguments", args.Count.ToString());
+            }
+            if (args[0].MonkeyObjectEnumType() != MonkeyTypeEnum.Array_Obj)
+            {
+                return CreateError("argument to  Push  must be ARRAY", args[0].MonkeyObjectType());
+            }
+            var arr = args[0] as MonkeyArray;
+            var lastindex = arr.Elements.Count;
+            if (lastindex > 0)
+            {             
+                arr.Elements.Add(args[1]);
+                var temparry = new IMonkeyobject[arr.Elements.Count];
+                arr.Elements.CopyTo(temparry);
+                return new MonkeyArray() { Elements = temparry.ToList() };
+            }
+            return this.monkeyNull;
+        }
+        public IMonkeyobject Rest(List<IMonkeyobject> args)
+        {
+            if (args.Count != 1)
+            {
+                return CreateError("Wrong number of arguments", args.Count.ToString());
+            }
+            if (args[0].MonkeyObjectEnumType() != MonkeyTypeEnum.Array_Obj)
+            {
+                return CreateError("argument to  Rest  must be ARRAY", args[0].MonkeyObjectType());
+            }
+            var arr = args[0] as MonkeyArray;
+            var lastindex = arr.Elements.Count;
+            if (lastindex > 0)
+            {
+                var temparry = new IMonkeyobject[arr.Elements.Count];
+                arr.Elements.CopyTo(temparry);
+                return new MonkeyArray() { Elements = temparry.ToList() };
+            }
+            return this.monkeyNull;
+        }
+        private IMonkeyobject Last(List<IMonkeyobject> args)
+        {
+            if (args.Count != 1)
+            {
+                return CreateError("Wrong number of arguments", args.Count.ToString());
+            }
+            if (args[0].MonkeyObjectEnumType() != MonkeyTypeEnum.Array_Obj)
+            {
+                return CreateError("argument to  Last  must be ARRAY", args[0].MonkeyObjectType());
+            }
+            var arr = args[0] as MonkeyArray;
+            var lastindex = arr.Elements.Count;
+            if (lastindex > 0)
+            {
+                return arr.Elements[lastindex - 1];
+            }
+            return this.monkeyNull;
+        }
+
         private Dictionary<string, MonkeyBuiltin> BuiltinPairs;
         private readonly Dictionary<bool, MonkeyBoolean> BoolValuePairs = new Dictionary<bool, MonkeyBoolean>()
         {
@@ -266,8 +376,49 @@ namespace 解释器
                     return ApplyFunction(func, arg);
                 case StringLiteral stringLiteral:
                     return new MonkeyString() { Value = stringLiteral.Value };
+                case ArrayLiteral arrayLiteral:
+                    var eles = EvalExpressions(arrayLiteral.Element, environment);
+                    if (eles.Count == 1 && IsError(eles[0]))
+                    {
+                        return eles[0];
+                    }
+                    return new MonkeyArray() { Elements = eles };
+                case IndexExpression indexExpression:
+                    left = Eval(indexExpression.Left, environment);
+                    if (IsError(left))
+                    {
+                        return left;
+                    }
+                    var index = Eval(indexExpression.Index, environment);
+                    if (IsError(index))
+                    {
+                        return index;
+                    }
+
+                    return EvalIndexExpression(left, index);
             }
             return null;
+        }
+        public IMonkeyobject EvalIndexExpression(IMonkeyobject Left, IMonkeyobject index)
+        {
+            switch (Left)
+            {
+                case IMonkeyobject l when (l.MonkeyObjectEnumType() == MonkeyTypeEnum.Array_Obj) && (index.MonkeyObjectEnumType() == MonkeyTypeEnum.Double_Obj):
+                    return EvalArrayIndexExpression(Left, index);
+                default:
+                    return CreateError("index op not supported", Left.MonkeyObjectType());
+            }
+        }
+        public IMonkeyobject EvalArrayIndexExpression(IMonkeyobject Left, IMonkeyobject index)
+        {
+            var array = Left as MonkeyArray;
+            var idx = index as MonkeyDouble;
+            var max = array.Elements.Count - 1;
+            if (idx.Value < 0 || idx.Value > max)
+            {
+                return monkeyNull;
+            }
+            return array.Elements[(int)idx.Value];
         }
         public IMonkeyobject ApplyFunction(IMonkeyobject fun, List<IMonkeyobject> args)
         {
@@ -324,6 +475,8 @@ namespace 解释器
             }
             switch (args[0])
             {
+                case MonkeyArray monkeyArray:
+                    return new MonkeyDouble() { Value = monkeyArray.Elements.Count };
                 case MonkeyString monkeyString:
                     return new MonkeyDouble() { Value = monkeyString.Value.Length };
                 default:

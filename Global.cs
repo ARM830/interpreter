@@ -15,7 +15,8 @@ namespace 解释器
         Error_Obj,
         Function_Obj,
         String_Obj,
-        Builtin_Obj
+        Builtin_Obj,
+        Array_Obj,
     }
     enum Lowset
     {
@@ -26,6 +27,7 @@ namespace 解释器
         PRODUCT = 5,// * 
         PREFIX = 6, // -X or !X 
         CALL = 7,
+        INDEX = 8
     }
     enum TokenEnum
     {
@@ -144,7 +146,15 @@ namespace 解释器
         /// <summary>
         /// string
         /// </summary>
-        STRING
+        STRING,
+        /// <summary>
+        /// [
+        /// </summary>
+        LBRACKET,
+        /// <summary>
+        /// ]
+        /// </summary>
+        RBRACKET,
 
     }
     static class Global
@@ -160,6 +170,7 @@ namespace 解释器
             {MonkeyTypeEnum.Function_Obj, "Function" },
             {MonkeyTypeEnum.String_Obj, "String" },
             {MonkeyTypeEnum.Builtin_Obj, "Builtin" },
+            {MonkeyTypeEnum.Array_Obj, "Array" },
         };
         public static readonly Dictionary<TokenEnum, Lowset> Precedences = new Dictionary<TokenEnum, Lowset>()
         {
@@ -171,7 +182,8 @@ namespace 解释器
             { TokenEnum.MINUS, Lowset.SUM },
             { TokenEnum.SLASH, Lowset.PRODUCT },
             { TokenEnum.ASTERISK, Lowset.PRODUCT },
-            {TokenEnum.LPAREN,Lowset.CALL }
+            {TokenEnum.LPAREN,Lowset.CALL },
+            {TokenEnum.LBRACKET,Lowset.INDEX }
         };
 
         public static readonly Dictionary<char, Token> TokenPairs = new Dictionary<char, Token>()
