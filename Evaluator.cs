@@ -6,7 +6,12 @@ using System.Threading.Tasks;
 
 namespace 解释器
 {
-
+    interface IHashKey
+    {
+        MonkeyTypeEnum HashType { get; set; }
+        ulong HashValue { get; set; }
+        IHashKey HashKey();
+    }
     interface IMonkeyobject
     {
         MonkeyTypeEnum MonkeyObjectEnumType();
@@ -31,8 +36,18 @@ namespace 解释器
             return Global.MonkeyTypePairs[MonkeyObjectEnumType()];
         }
     }
-    class MonkeyDouble : IMonkeyobject
+    class MonkeyDouble : IMonkeyobject, IHashKey
     {
+        public MonkeyTypeEnum HashType { get; set; }
+        public ulong HashValue { get; set; }
+
+        public IHashKey HashKey()
+        {
+            var result = this as IHashKey;
+            result.HashType = MonkeyTypeEnum.Double_Obj;
+            result.HashValue = (ulong)Value;
+            return result;
+        }
         public double Value { get; set; }
         public string Inspect()
         {
@@ -49,9 +64,20 @@ namespace 解释器
             return Global.MonkeyTypePairs[MonkeyObjectEnumType()];
         }
     }
-    class MonkeyBoolean : IMonkeyobject
+    class MonkeyBoolean : IMonkeyobject, IHashKey
     {
         public bool Value { get; set; }
+        public MonkeyTypeEnum HashType { get; set; }
+        public ulong HashValue { get; set; }
+
+        public IHashKey HashKey()
+        {
+            var result = this as IHashKey;
+            result.HashType = MonkeyTypeEnum.Boolean_Obj;
+            result.HashValue = Value ? 1UL : 0UL;
+            return result;
+        }
+
         public string Inspect()
         {
             return Value.ToString();
@@ -128,8 +154,18 @@ namespace 解释器
             return Global.MonkeyTypePairs[MonkeyObjectEnumType()];
         }
     }
-    class MonkeyString : IMonkeyobject
+    class MonkeyString : IMonkeyobject, IHashKey
     {
+        public MonkeyTypeEnum HashType { get; set; }
+        public ulong HashValue { get; set; }
+
+        public IHashKey HashKey()
+        {
+            var result = this as IHashKey;
+            result.HashType = MonkeyTypeEnum.String_Obj;
+            result.HashValue = (ulong)Value.GetHashCode();
+            return result;
+        }
         public string Value { get; set; }
         public string Inspect()
         {
@@ -183,6 +219,34 @@ namespace 解释器
         public MonkeyTypeEnum MonkeyObjectEnumType()
         {
             return MonkeyTypeEnum.Array_Obj;
+        }
+
+        public string MonkeyObjectType()
+        {
+            return Global.MonkeyTypePairs[MonkeyObjectEnumType()];
+        }
+    }
+    class HashPair
+    {
+        public IMonkeyobject Key { get; set; }
+        public IMonkeyobject Value { get; set; }
+    }
+    class MonkeyHash : IMonkeyobject
+    {
+        public Dictionary<IHashKey, HashPair> Pairs { get; set; }
+        public string Inspect()
+        {
+            var str = new List<string>();
+            foreach (var item in Pairs)
+            {
+                str.Add($"{item.Value.Key.Inspect()}:{item.Value.Value.Inspect()}");
+            }
+            return $"{{{string.Join(",", str)}}}";
+        }
+
+        public MonkeyTypeEnum MonkeyObjectEnumType()
+        {
+            return MonkeyTypeEnum.Hash_Obj;
         }
 
         public string MonkeyObjectType()
@@ -251,7 +315,7 @@ namespace 解释器
             var arr = args[0] as MonkeyArray;
             var lastindex = arr.Elements.Count;
             if (lastindex > 0)
-            {             
+            {
                 arr.Elements.Add(args[1]);
                 var temparry = new IMonkeyobject[arr.Elements.Count];
                 arr.Elements.CopyTo(temparry);
@@ -396,8 +460,50 @@ namespace 解释器
                     }
 
                     return EvalIndexExpression(left, index);
+                case HashLiteral hashLiteral:
+                    return EvalHashLiteral(hashLiteral, environment);
             }
             return null;
+        }
+        public IMonkeyobject EvalHashIndexExpreesion(IMonkeyobject Hash, IMonkeyobject Index)
+        {
+            var hashobject = Hash as MonkeyHash;
+            hashobject.Pairs = new Dictionary<IHashKey, HashPair>();
+            var ok = Index is IHashKey;
+            if (!ok)
+            {
+                return CreateError("unusable as hash key: ", Index.MonkeyObjectType());
+            }
+            if (hashobject.Pairs.TryGetValue((Index as IHashKey).HashKey(), out HashPair hashPair))
+            {
+                return hashPair.Value;
+            }
+            return null;
+        }
+        public IMonkeyobject EvalHashLiteral(HashLiteral hashLiteral, MonkeyEnvironment env)
+        {
+            var pairs = new Dictionary<IHashKey, HashPair>();
+            foreach (var item in hashLiteral.Pairs)
+            {
+                var key = Eval(item.Key, env);
+                if (IsError(key))
+                {
+                    return key;
+                }
+                var ok = key is IHashKey;
+                if (!ok)
+                {
+                    return CreateError("unusable as hash key: ", key.MonkeyObjectType());
+                }
+                var val = Eval(item.Value, env);
+                if (IsError(val))
+                {
+                    return val;
+                }
+                var hashkey = key as IHashKey;
+                pairs[hashkey] = new HashPair() { Key = key, Value = val };
+            }
+            return new MonkeyHash() { Pairs = pairs };
         }
         public IMonkeyobject EvalIndexExpression(IMonkeyobject Left, IMonkeyobject index)
         {
@@ -405,6 +511,8 @@ namespace 解释器
             {
                 case IMonkeyobject l when (l.MonkeyObjectEnumType() == MonkeyTypeEnum.Array_Obj) && (index.MonkeyObjectEnumType() == MonkeyTypeEnum.Double_Obj):
                     return EvalArrayIndexExpression(Left, index);
+                case IMonkeyobject monkeyobject when monkeyobject.MonkeyObjectEnumType() == MonkeyTypeEnum.Hash_Obj:
+                    return EvalHashIndexExpreesion(monkeyobject, index);
                 default:
                     return CreateError("index op not supported", Left.MonkeyObjectType());
             }

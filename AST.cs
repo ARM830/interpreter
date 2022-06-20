@@ -392,4 +392,31 @@ namespace 解释器
             return Token.Literal;
         }
     }
+  
+    class HashLiteral : IExpression
+    {
+        public Token Token { get; set; }
+
+        public Dictionary<IExpression, IExpression> Pairs { get; set; }
+
+        public void ExpressionNode()
+        {
+            throw new NotImplementedException();
+        }
+
+        public string OutLine()
+        {
+            var str = new List<string>();
+            foreach (var item in Pairs.Values)
+            {
+                str.Add(item.OutLine());
+            }
+            return $"{{{string.Join(",", str)}}}";
+        }
+
+        public string TokenLiteral()
+        {
+            return Token.Literal;
+        }
+    }
 }

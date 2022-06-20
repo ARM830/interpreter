@@ -263,6 +263,18 @@ namespace 解释器
             };
             EvalTest(input);
         }
+        // let people = [{"name": "Alice", "age": 24}, {"name": "Anna", "age": 28}]; 
+        public static void EvalHash()
+        {
+            //"a * [1, 2, 3, 4][b * c] * d",
+            var input = new string[]
+            {
+               "let people = [{\"name\": \"Alice\", \"age\": 24}, {\"name\": \"Anna\", \"age\": 28}];people[0][\"name\"]; ",
+              // "let double = fn(x) { x * 2 };" +
+              // "[1, double(2), 3 * 3, 4 - 3] "
+            };
+            EvalTest(input);
+        }
         public static void EvalTestParser(string[] input)
         {
             foreach (var item in input)
@@ -311,7 +323,7 @@ namespace 解释器
         }
         public static void Start()
         {
-            EvalArray4();
+            EvalHash();
         }
     }
 }

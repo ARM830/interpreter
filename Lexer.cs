@@ -140,6 +140,9 @@ namespace 解释器
                 case ']':
                     token = new Token(TokenEnum.RBRACKET, CharValue);
                     break;
+                case ':':
+                    token = new Token(TokenEnum.COLON, CharValue);
+                    break;
                 default:
                     token = new Token();
 
@@ -168,7 +171,7 @@ namespace 解释器
         }
         public string ReadString()
         {
-            int count =0;
+            int count = 0;
             var pos = Position + 1;
             while (true)
             {
@@ -179,7 +182,7 @@ namespace 解释器
                     count--;
                     break;
                 }
-               
+
             }
             return Input.Substring(pos, count);
         }

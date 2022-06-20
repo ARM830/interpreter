@@ -17,6 +17,7 @@ namespace 解释器
         String_Obj,
         Builtin_Obj,
         Array_Obj,
+        Hash_Obj,
     }
     enum Lowset
     {
@@ -155,6 +156,10 @@ namespace 解释器
         /// ]
         /// </summary>
         RBRACKET,
+        /// <summary>
+        /// :
+        /// </summary>
+        COLON,
 
     }
     static class Global
@@ -171,6 +176,7 @@ namespace 解释器
             {MonkeyTypeEnum.String_Obj, "String" },
             {MonkeyTypeEnum.Builtin_Obj, "Builtin" },
             {MonkeyTypeEnum.Array_Obj, "Array" },
+            {MonkeyTypeEnum.Hash_Obj, "Hash" },
         };
         public static readonly Dictionary<TokenEnum, Lowset> Precedences = new Dictionary<TokenEnum, Lowset>()
         {

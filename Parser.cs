@@ -29,6 +29,7 @@ namespace 解释器
             RegisterPrefix(TokenEnum.FUNCTION, ParseFunctionLiteral);
             RegisterPrefix(TokenEnum.STRING, ParseStringLiteral);
             RegisterPrefix(TokenEnum.LBRACKET, ParseArrayLiteral);
+            RegisterPrefix(TokenEnum.LBRACE, ParseHashLiteral);
 
             Registerinfix(TokenEnum.PLUS, ParseInfixExpression);
             Registerinfix(TokenEnum.MINUS, ParseInfixExpression);
@@ -40,6 +41,31 @@ namespace 解释器
             Registerinfix(TokenEnum.GT, ParseInfixExpression);
             Registerinfix(TokenEnum.LPAREN, ParseCallExpression);
             Registerinfix(TokenEnum.LBRACKET, ParseIndexExpression);
+        }
+        public IExpression ParseHashLiteral()
+        {
+            var hash = new HashLiteral() { Token = CurToken };
+            hash.Pairs = new Dictionary<IExpression, IExpression>();
+            while (!PeekTokenIs(TokenEnum.RBRACE))
+            {
+                NextToken();
+                var key = ParseExpression();
+                if (!ExpectPeek(TokenEnum.COLON))
+                {
+                    return null;
+                }
+                NextToken();
+                hash.Pairs[key] = ParseExpression();
+                if (!PeekTokenIs(TokenEnum.RBRACE)&&!ExpectPeek(TokenEnum.COMMA))
+                {
+                    return null;
+                }
+            }
+            if (!ExpectPeek(TokenEnum.RBRACE))
+            {
+                return null;
+            }
+            return hash;
         }
         public IExpression ParseIndexExpression(IExpression left)
         {
