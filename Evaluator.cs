@@ -303,7 +303,16 @@ namespace 解释器
                 {"last",new MonkeyBuiltin(){Function=new Global.BuiltinFunction(Last) } },
                 {"rest",new MonkeyBuiltin(){Function=new Global.BuiltinFunction(Rest) } },
                 {"push",new MonkeyBuiltin(){Function=new Global.BuiltinFunction(Push) } },
+                {"puts",new MonkeyBuiltin(){Function=new Global.BuiltinFunction(Puts) } },
             };
+        }
+        public IMonkeyobject Puts(List<IMonkeyobject> args)
+        {
+            foreach (var item in args)
+            {
+                Console.WriteLine(item.Inspect());
+            }
+            return monkeyNull;
         }
         public IMonkeyobject Push(List<IMonkeyobject> args)
         {
